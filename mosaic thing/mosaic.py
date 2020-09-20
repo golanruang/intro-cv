@@ -74,8 +74,14 @@ def findMatch():
     print('finding the best matched image')
     pass
 
-def combine():
-    print('combining the images from folder')
+def replace(imgList):
+    for rect in targetSplit:
+        rectColor=findBGR(rect)
+            for img in imgList:
+                dist=(rectColor[0]-img["imgColors"][0])*(rectColor[0]-img["imgColors"][0])
+                +(rectColor[1]-img["imgColors"][1])*(rectColor[1]-img["imgColors"][1])
+                +(rectColor[2]-img["imgColors"][2])*(rectColor[2]-img["imgColors"][2])
+                if dist<min_dist:
     pass
 
 def main():
@@ -117,7 +123,7 @@ def main():
             +(rectColor[1]-img["imgColors"][1])*(rectColor[1]-img["imgColors"][1])
             +(rectColor[2]-img["imgColors"][2])*(rectColor[2]-img["imgColors"][2])
             if dist<min_dist:
-                
+                rect=
 
 
 
