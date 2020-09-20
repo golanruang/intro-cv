@@ -8,6 +8,7 @@ import numpy as np
 import cv2
 import time
 from skimage import io
+from sklearn.cluster import KMeans
 
 # python mosaic.py --imgFolder images --bigImg targetImage --grid 10
 
@@ -38,27 +39,32 @@ def splitImage(image,grid):
 def findRGB(img):
     """
     Finds the dominant color of a image (dominant != average)
-    https://stackoverflow.com/questions/43111029/how-to-find-the-average-colour-of-an-image-in-python-with-opencv
+    https://www.timpoulsen.com/2018/finding-the-dominant-colors-of-an-image.html
     """
-    # img=io.imread(image)[:,:,:-1]
+    height, width, _ = np.shape(img)
+
+    # calculate the average color of each row of our image
     avg_color_per_row = np.average(img, axis=0)
-    avg_color = np.average(avg_color_per_row, axis=0)
-    print(avg_color_per_row)
 
+    # calculate the averages of our rows
+    avg_colors = np.average(avg_color_per_row, axis=0)
 
-    #
-    # im = np.array(image)
-    # print(im)
-    # print(im.shape)
-    # width=im.shape[1]
-    # height=im.shape[0]
-    # channels=im.shape[2]
-    # numPix=width*height
-    # for w in width:
-    #     for h in height:
-    #
-    # avg = (tuple(np.average(im.reshape(b * g, r), axis=0)))
-    # return avg
+    # avg_color is a tuple in BGR order of the average colors
+    # but as float values
+    print(f'avg_colors: {avg_colors}')
+
+    # so, convert that array to integers
+    int_averages = np.array(avg_colors, dtype=np.uint8)
+    print(f'int_averages: {int_averages}')
+
+    # create a new image of the same height/width as the original
+    average_image = np.zeros((height, width, 3), np.uint8)
+    # and fill its pixels with our average color
+    average_image[:] = int_averages
+
+    # finally, show it side-by-side with the original
+    # cv2.imshow("Avg Color", np.hstack([img, average_image]))
+    # cv2.waitKey(0)
 
 def findMatch():
     print('finding the best matched image')
