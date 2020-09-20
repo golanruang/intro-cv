@@ -8,9 +8,8 @@ import numpy as np
 import cv2
 import time
 from skimage import io
-from sklearn.cluster import KMeans
 
-# python mosaic.py --imgFolder images --bigImg targetImage --grid 10
+# python mosaic.py --imgFolder images --bigImg targetImage.jpeg --grid 10
 
 def readImages(dir):
     images = []
@@ -21,8 +20,6 @@ def readImages(dir):
 def splitImage(image,grid):
     print('splitting big image into small rectangular ones')
     width, height=image.shape[0],image.shape[1]
-    print(width)
-    print(height)
     w,h=int(int(width)/int(grid)),int(int(height)/int(grid))
     gridImgs=[]
     for i in range(w):
@@ -36,12 +33,17 @@ def splitImage(image,grid):
                 gridImgs.append(crop_img)
     return gridImgs
 
-def findRGB(img):
+def findBGR(img):
     """
     Finds the dominant color of a image (dominant != average)
     https://www.timpoulsen.com/2018/finding-the-dominant-colors-of-an-image.html
     """
-    height, width, _ = np.shape(img)
+    img=np.array(img)
+    try:
+        height=np.shape(img)[0]
+        width=np.shape(img)[1]
+    except:
+        return -1
 
     # calculate the average color of each row of our image
     avg_color_per_row = np.average(img, axis=0)
@@ -49,18 +51,20 @@ def findRGB(img):
     # calculate the averages of our rows
     avg_colors = np.average(avg_color_per_row, axis=0)
 
+    return avg_colors
     # avg_color is a tuple in BGR order of the average colors
     # but as float values
-    print(f'avg_colors: {avg_colors}')
+    # print(f'avg_colors: {avg_colors}')
 
     # so, convert that array to integers
-    int_averages = np.array(avg_colors, dtype=np.uint8)
-    print(f'int_averages: {int_averages}')
+    # int_averages = np.array(avg_colors, dtype=np.uint8)
+    # print(f'int_averages: {int_averages}')
 
     # create a new image of the same height/width as the original
-    average_image = np.zeros((height, width, 3), np.uint8)
+    # average_image = np.zeros((height, width, 3), np.uint8)
     # and fill its pixels with our average color
-    average_image[:] = int_averages
+    # average_image[:] = int_averages
+
 
     # finally, show it side-by-side with the original
     # cv2.imshow("Avg Color", np.hstack([img, average_image]))
@@ -84,22 +88,55 @@ def main():
     bigImg=args["bigImg"]
     grid=args["grid"]
     folderImgs=readImages(imgFolder)
-    print(folderImgs)
     actualImgs=[]
+    index=0
+    imgList=[]
+    imgDict={}
+    smallerImgs=[]
     for img in folderImgs:
         image=cv2.imread('images/' + img)
-        actualImgs.append(image)
-
-    smallerImgs=[]
-
-    for img in actualImgs:
-        split=splitImage(img,grid)
-        print(split)
+        split=splitImage(image,grid)
         smallerImgs.append(split)
+        for img in smallerImgs:
+            imgDict={}
+            avgColor=findBGR(image)
+            imgDict["name"]=str(index)
+            imgDict["imgColors"]=avgColor
+            imgDict["npArray"]=np.array(image)
+            imgList.append(imgDict)
+    print(imgList)
+    print("bigImg: ",bigImg)
+    print(type(grid))
+    bigImg=cv2.imread(bigImg)
+    targetSplit=splitImage(bigImg,int(grid)/2)
+    min_dist=float("inf")
+    for rect in targetSplit:
+        rectColor=findBGR(rect)
+        for img in imgList:
+            dist=(rectColor[0]-img["imgColors"][0])*(rectColor[0]-img["imgColors"][0])
+            +(rectColor[1]-img["imgColors"][1])*(rectColor[1]-img["imgColors"][1])
+            +(rectColor[2]-img["imgColors"][2])*(rectColor[2]-img["imgColors"][2])
+            if dist<min_dist:
+                
 
-    for img in smallerImgs:
-        img=np.array(img)
-        avgColor=findRGB(img)
+
+
+        # actualImgs.append(image)
+    #
+    # smallerImgs=[]
+    #
+    # for img in actualImgs:
+    #     split=splitImage(img,grid)
+    #     smallerImgs.append(split)
+    #
+    # #dict={"imgName":
+    # #      "imgColors: "
+    # #      "npArray: "}
+    #
+    # for img in smallerImgs:
+    #     print('finding rbg')
+    #     avgColor=findRGB(img)
+    #     print(avgColor)
 
 
 main()
