@@ -13,14 +13,14 @@ from skimage import io
 
 def readImages(dir):
     images = []
-    for f in os.listdir(dir):                          # for every file in the path given
+    for f in os.listdir(dir):                          # all the image names
             images.append(f)
     return images
 
 def splitImage(image,grid):
     print('splitting big image into small rectangular ones')
     width, height=image.shape[0],image.shape[1]
-    w,h=int(int(width)/int(grid)),int(int(height)/int(grid))
+    w,h=int(int(width)/int(grid)),int(int(height)/int(grid))     # cutting the images into sections
     gridImgs=[]
     for i in range(w):
         for j in range(h):
@@ -30,8 +30,17 @@ def splitImage(image,grid):
                 # print("top left x",i*w)
                 # print("bottom right x",(i+1)*w)
                 crop_img = image[j*h:(j+1)*h, i*w:(i+1)*w]       # cropping images - chapter 4
-                gridImgs.append(crop_img)
+                gridImgs.append(crop_img)                        # append the numpy arrays to a python list
     return gridImgs
+
+def createMosaic(imgList, image, grid):
+
+    width, height=image.shape[0],image.shape[1]
+    w,h=int(int(width)/int(grid)),int(int(height)/int(grid))
+    gridImgs=[]
+    for i in range(w):
+        for j in range(h):
+            if (j+1)*h < height and (i+1)*w<width:
 
 def findBGR(img):
     """
@@ -77,44 +86,38 @@ def findMatch():
 def replace(imgList):
     for rect in targetSplit:
         rectColor=findBGR(rect)
-            for img in imgList:
-                dist=(rectColor[0]-img["imgColors"][0])*(rectColor[0]-img["imgColors"][0])
-                +(rectColor[1]-img["imgColors"][1])*(rectColor[1]-img["imgColors"][1])
-                +(rectColor[2]-img["imgColors"][2])*(rectColor[2]-img["imgColors"][2])
-                if dist<min_dist:
-    pass
+        for img in imgList:
+            dist=(rectColor[0]-img["imgColors"][0])*(rectColor[0]-img["imgColors"][0])
+            +(rectColor[1]-img["imgColors"][1])*(rectColor[1]-img["imgColors"][1])
+            +(rectColor[2]-img["imgColors"][2])*(rectColor[2]-img["imgColors"][2])
+            #if dist<min_dist:
 
 def main():
-    ap=argparse.ArgumentParser()
+    ap=argparse.ArgumentParser()                    # necessary inputs
     ap.add_argument("-i","--imgFolder",required=True,help="Path to the folder with a lot of images in it")
     ap.add_argument("-j","--bigImg",required=True,help="Path to image for big mosaic")
     ap.add_argument("-k","--grid",required=True,help="Size of mosaic")
     args=vars(ap.parse_args())
+
     imgFolder=args["imgFolder"]
     bigImg=args["bigImg"]
     grid=args["grid"]
-    folderImgs=readImages(imgFolder)
-    actualImgs=[]
-    index=0
-    imgList=[]
+    folderImgs=readImages(imgFolder)                # images from folder to make mosaic
+
+    index=0                                         # give a name to each np array
+    imgList=[]                                      # list of dicts with image info in each dict
     imgDict={}
     smallerImgs=[]
     for img in folderImgs:
-        image=cv2.imread('images/' + img)
-        split=splitImage(image,grid)
-        smallerImgs.append(split)
-        for img in smallerImgs:
-            imgDict={}
-            avgColor=findBGR(image)
-            imgDict["name"]=str(index)
-            imgDict["imgColors"]=avgColor
-            imgDict["npArray"]=np.array(image)
-            imgList.append(imgDict)
-    print(imgList)
-    print("bigImg: ",bigImg)
-    print(type(grid))
+        image=cv2.imread('images/' + img)           # read each img
+        imgDict={}
+        avgColor=findBGR(image)                     # find the dominant color
+        imgDict["name"]=str(index)
+        imgDict["imgColors"]=avgColor
+        imgDict["npArray"]=np.array(image)
+        imgList.append(imgDict)                     # make a dict that gives the name, dominant color, and array of each img
     bigImg=cv2.imread(bigImg)
-    targetSplit=splitImage(bigImg,int(grid)/2)
+    targetSplit=splitImage(bigImg,grid)
     min_dist=float("inf")
     for rect in targetSplit:
         rectColor=findBGR(rect)
@@ -122,8 +125,8 @@ def main():
             dist=(rectColor[0]-img["imgColors"][0])*(rectColor[0]-img["imgColors"][0])
             +(rectColor[1]-img["imgColors"][1])*(rectColor[1]-img["imgColors"][1])
             +(rectColor[2]-img["imgColors"][2])*(rectColor[2]-img["imgColors"][2])
-            if dist<min_dist:
-                rect=
+            #if dist<min_dist:
+                #
 
 
 
