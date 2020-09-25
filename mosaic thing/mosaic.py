@@ -33,14 +33,14 @@ def splitImage(image,grid):
                 gridImgs.append(crop_img)                        # append the numpy arrays to a python list
     return gridImgs
 
-def createMosaic(imgList, image, grid):
-
-    width, height=image.shape[0],image.shape[1]
-    w,h=int(int(width)/int(grid)),int(int(height)/int(grid))
-    gridImgs=[]
-    for i in range(w):
-        for j in range(h):
-            if (j+1)*h < height and (i+1)*w<width:
+# def createMosaic(imgList, image, grid):
+#
+#     width, height=image.shape[0],image.shape[1]
+#     w,h=int(int(width)/int(grid)),int(int(height)/int(grid))
+#     gridImgs=[]
+#     for i in range(w):
+#         for j in range(h):
+#             if (j+1)*h < height and (i+1)*w<width:
 
 def findBGR(img):
     """
@@ -79,17 +79,62 @@ def findBGR(img):
     # cv2.imshow("Avg Color", np.hstack([img, average_image]))
     # cv2.waitKey(0)
 
-def findMatch():
-    print('finding the best matched image')
-    pass
+# color modifications
 
-def replace(imgList):
-    for rect in targetSplit:
-        rectColor=findBGR(rect)
-        for img in imgList:
-            dist=(rectColor[0]-img["imgColors"][0])*(rectColor[0]-img["imgColors"][0])
-            +(rectColor[1]-img["imgColors"][1])*(rectColor[1]-img["imgColors"][1])
-            +(rectColor[2]-img["imgColors"][2])*(rectColor[2]-img["imgColors"][2])
+def removeBad(imgList):
+    for i in range(0,len(imgList)-1):
+        if type(imgList[i]["imgColors"])==int:
+            imgList.pop(i)
+    return imgList
+
+def findMatch(imgList,rectColor):
+    print('finding the best matched image')
+    distances=[]
+    for img in imgList:
+        db=(rectColor[0]-img["imgColors"][0])*(rectColor[0]-img["imgColors"][0])
+        dg=(rectColor[1]-img["imgColors"][1])*(rectColor[1]-img["imgColors"][1])
+        dr=(rectColor[2]-img["imgColors"][2])*(rectColor[2]-img["imgColors"][2])
+        dist=db+dg+dr
+        distances.append(dist)
+    min=distances[0]
+    minIndex=-1
+    index=0
+    for val in distances:
+        if val>min:
+            min=val
+            minIndex=index
+        index+=1
+
+    return minIndex
+    # TODO: finish this function
+
+def replace(targetImage,grid,imgList):
+    width, height=targetImage.shape[0],targetImage.shape[1]
+    w,h=int(int(width)/int(grid)),int(int(height)/int(grid))
+    gridImgs=[]
+    for i in range(w):
+        for j in range(h):
+            tl=(int(i*w),int(j*h))
+            br=(int((i+1)*w),int((j+1)*h))
+            tr=(int((i+1)*w),int(j*h))
+            bl=(int(i*w),int((j+1)*h))
+            rect=targetImage[tl[1]:br[1], tl[0]:br[0]]
+            BGR=findBGR(rect)
+            replaceImg=findMatch(imgList,BGR)
+            dim=((i+w)*w)
+            resized=cv2.resize(replaceImg,(int(w),int(h)))
+            print("resized: ",resized)
+            #resized.append(3)
+            targetImage[tl[1]:br[1], tl[0]:br[0]]=resized
+    cv2.imshow(targetImage)
+    cv2.waitKey()
+
+    # for rect in targetSplit:
+    #     rectColor=findBGR(rect)
+    #     for img in imgList:
+    #         dist=(rectColor[0]-img["imgColors"][0])*(rectColor[0]-img["imgColors"][0])
+    #         +(rectColor[1]-img["imgColors"][1])*(rectColor[1]-img["imgColors"][1])
+    #         +(rectColor[2]-img["imgColors"][2])*(rectColor[2]-img["imgColors"][2])
             #if dist<min_dist:
 
 def main():
@@ -106,7 +151,6 @@ def main():
 
     index=0                                         # give a name to each np array
     imgList=[]                                      # list of dicts with image info in each dict
-    imgDict={}
     smallerImgs=[]
     for img in folderImgs:
         image=cv2.imread('images/' + img)           # read each img
@@ -116,15 +160,20 @@ def main():
         imgDict["imgColors"]=avgColor
         imgDict["npArray"]=np.array(image)
         imgList.append(imgDict)                     # make a dict that gives the name, dominant color, and array of each img
+    #print(imgList)
     bigImg=cv2.imread(bigImg)
-    targetSplit=splitImage(bigImg,grid)
-    min_dist=float("inf")
-    for rect in targetSplit:
-        rectColor=findBGR(rect)
-        for img in imgList:
-            dist=(rectColor[0]-img["imgColors"][0])*(rectColor[0]-img["imgColors"][0])
-            +(rectColor[1]-img["imgColors"][1])*(rectColor[1]-img["imgColors"][1])
-            +(rectColor[2]-img["imgColors"][2])*(rectColor[2]-img["imgColors"][2])
+    # targetSplit=splitImage(bigImg,grid)
+    # min_dist=float("inf")
+    print('before: ',imgList)
+    imgList=removeBad(imgList)
+    print('new img list:',imgList)
+    mosaic=replace(bigImg,grid,imgList)
+    # for rect in targetImage:
+    #     rectColor=findBGR(rect)
+    #     for img in imgList:
+    #         dist=(rectColor[0]-img["imgColors"][0])*(rectColor[0]-img["imgColors"][0])
+    #         +(rectColor[1]-img["imgColors"][1])*(rectColor[1]-img["imgColors"][1])
+    #         +(rectColor[2]-img["imgColors"][2])*(rectColor[2]-img["imgColors"][2])
             #if dist<min_dist:
                 #
 
