@@ -109,7 +109,7 @@ def findMatch(imgList,rectColor):
     # TODO: finish this function
 
 def replace(targetImage,grid,imgList):
-    width, height=targetImage.shape[0],targetImage.shape[1]
+    width, height=targetImage.shape[0],targetImage.shape[1] #
     w,h=int(int(width)/int(grid)),int(int(height)/int(grid))
     gridImgs=[]
     for i in range(w):
