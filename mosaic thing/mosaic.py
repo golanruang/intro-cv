@@ -59,6 +59,15 @@ def removeBad(imgList):
             imgList.pop(i)
     return imgList
 
+def resize_dataset(images):
+    resized_images = []
+    for img in images:
+            image=cv2.imread('images/' + img)
+            img = image.reshape((28,28)).astype('float32')  # <-- convert image to float32
+            resized_img = cv2.resize(img, dsize=(10, 10))
+            resized_images.append(resized_img)
+    return numpy.array(resized_images)
+
 def findMatch(imgList,rectColor):
     #print('finding the best matched image')
     distances=[]
@@ -81,7 +90,7 @@ def findMatch(imgList,rectColor):
 
 def replace(targetImage,grid,imgList):
     width, height=targetImage.shape[0],targetImage.shape[1] #
-    w,h=int((width)/(grid)),int((height)/(grid))
+    w,h=int(int(width)/int(grid)),int(int(height)/int(grid))
     gridImgs=[]
     for i in range(w):
         for j in range(h):
@@ -92,14 +101,13 @@ def replace(targetImage,grid,imgList):
             rect=targetImage[tl[1]:br[1], tl[0]:br[0]]
             BGR=findBGR(rect)
             replaceImg=findMatch(imgList,BGR)
-            resized=cv2.resize(imgList[replaceImg]["npArray"],(int(w),int(h)))
-            print("resized: ",resized.shape)
+            #try:
+            resized=cv2.resize(imgList[replaceImg]["npArray"],(int(rect.shape[1]),int(rect.shape[0])),interpolation=cv2.INTER_AREA)
+            #print("resized: ",resized.shape)
             print(rect.shape)
-            #print("newa: ",newa)
-            #print("resized: ",resized)
-            #resized.append(3)
             targetImage[tl[1]:br[1], tl[0]:br[0]]=resized
-            print('editted')
+        #except:
+            print("except: ",imgList[replaceImg]["name"])
     cv2.imshow(targetImage)
     cv2.waitKey()
 
@@ -122,6 +130,7 @@ def main():
     bigImg=args["bigImg"]
     grid=args["grid"]
     folderImgs=readImages(imgFolder)                # return image names from folder to make mosaic
+    folderImgs=resize_dataset(folderImgs)
 
     index=0                                         # give a name to each np array
     imgList=[]                                      # list of dicts with image info in each dict
