@@ -26,8 +26,8 @@ def findMatch(img,imgList):
 def replace(bigImg,imgList,grid):
     targetImage=cv2.imread(bigImg)
     width,height=targetImage.shape[0],targetImage.shape[1]
-    unitW=int(int(width)/40)
-    unitH=int(int(height)/40)
+    unitW=int(int(width)/20)
+    unitH=int(int(height)/20)
     imgs=[]
     for h in range(unitH):
         for w in range(unitW):
@@ -49,9 +49,6 @@ def replace(bigImg,imgList,grid):
     cv2.imshow("mosaic",resizedMosaic)
     cv2.waitKey()
 
-    # cv2.imshow("gridLines",targetImage)
-    # cv2.waitKey()
-
 
 def readImages(dir):
     images = []
@@ -63,7 +60,6 @@ def readImages(dir):
 def findDominantColor(img):
 
     data = np.reshape(img, (-1,3))
-    #print(data.shape)
     data = np.float32(data)
 
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
@@ -71,7 +67,6 @@ def findDominantColor(img):
     compactness,labels,centers = cv2.kmeans(data,1,None,criteria,10,flags)
 
     #print('Dominant color is: bgr({})'.format(centers[0].astype(np.int32)))
-    #print(centers[0].astype(np.int32)[0])
     return centers[0].astype(np.int32)
 
 def main():
@@ -90,7 +85,6 @@ def main():
     folderImgs=readImages(imgFolder)                # return image names from folder to make mosaic
 
     imgList=[]
-    #print('bye')
     for img in folderImgs:
         dict={}
         imgName='images/'+img
@@ -100,6 +94,6 @@ def main():
         dict["imgColor"]=imgColor
         imgList.append(dict)
 
-    mosaic=replace(bigImg,imgList,grid)
+    replace(bigImg,imgList,grid)
 
 main()
