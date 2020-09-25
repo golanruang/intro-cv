@@ -18,7 +18,7 @@ def readImages(dir):
     return images
 
 def splitImage(image,grid):
-    print('splitting big image into small rectangular ones')
+    #print('splitting big image into small rectangular ones')
     width, height=image.shape[0],image.shape[1]
     w,h=int(int(width)/int(grid)),int(int(height)/int(grid))     # cutting the images into sections
     gridImgs=[]
@@ -32,15 +32,6 @@ def splitImage(image,grid):
                 crop_img = image[j*h:(j+1)*h, i*w:(i+1)*w]       # cropping images - chapter 4
                 gridImgs.append(crop_img)                        # append the numpy arrays to a python list
     return gridImgs
-
-# def createMosaic(imgList, image, grid):
-#
-#     width, height=image.shape[0],image.shape[1]
-#     w,h=int(int(width)/int(grid)),int(int(height)/int(grid))
-#     gridImgs=[]
-#     for i in range(w):
-#         for j in range(h):
-#             if (j+1)*h < height and (i+1)*w<width:
 
 def findBGR(img):
     """
@@ -61,25 +52,6 @@ def findBGR(img):
     avg_colors = np.average(avg_color_per_row, axis=0)
 
     return avg_colors
-    # avg_color is a tuple in BGR order of the average colors
-    # but as float values
-    # print(f'avg_colors: {avg_colors}')
-
-    # so, convert that array to integers
-    # int_averages = np.array(avg_colors, dtype=np.uint8)
-    # print(f'int_averages: {int_averages}')
-
-    # create a new image of the same height/width as the original
-    # average_image = np.zeros((height, width, 3), np.uint8)
-    # and fill its pixels with our average color
-    # average_image[:] = int_averages
-
-
-    # finally, show it side-by-side with the original
-    # cv2.imshow("Avg Color", np.hstack([img, average_image]))
-    # cv2.waitKey(0)
-
-# color modifications
 
 def removeBad(imgList):
     for i in range(0,len(imgList)-1):
@@ -88,7 +60,7 @@ def removeBad(imgList):
     return imgList
 
 def findMatch(imgList,rectColor):
-    print('finding the best matched image')
+    #print('finding the best matched image')
     distances=[]
     for img in imgList:
         db=(rectColor[0]-img["imgColors"][0])*(rectColor[0]-img["imgColors"][0])
@@ -106,11 +78,10 @@ def findMatch(imgList,rectColor):
         index+=1
 
     return minIndex
-    # TODO: finish this function
 
 def replace(targetImage,grid,imgList):
     width, height=targetImage.shape[0],targetImage.shape[1] #
-    w,h=int(int(width)/int(grid)),int(int(height)/int(grid))
+    w,h=int((width)/(grid)),int((height)/(grid))
     gridImgs=[]
     for i in range(w):
         for j in range(h):
@@ -121,11 +92,14 @@ def replace(targetImage,grid,imgList):
             rect=targetImage[tl[1]:br[1], tl[0]:br[0]]
             BGR=findBGR(rect)
             replaceImg=findMatch(imgList,BGR)
-            dim=((i+w)*w)
-            resized=cv2.resize(replaceImg,(int(w),int(h)))
-            print("resized: ",resized)
+            resized=cv2.resize(imgList[replaceImg]["npArray"],(int(w),int(h)))
+            print("resized: ",resized.shape)
+            print(rect.shape)
+            #print("newa: ",newa)
+            #print("resized: ",resized)
             #resized.append(3)
             targetImage[tl[1]:br[1], tl[0]:br[0]]=resized
+            print('editted')
     cv2.imshow(targetImage)
     cv2.waitKey()
 
@@ -147,7 +121,7 @@ def main():
     imgFolder=args["imgFolder"]
     bigImg=args["bigImg"]
     grid=args["grid"]
-    folderImgs=readImages(imgFolder)                # images from folder to make mosaic
+    folderImgs=readImages(imgFolder)                # return image names from folder to make mosaic
 
     index=0                                         # give a name to each np array
     imgList=[]                                      # list of dicts with image info in each dict
@@ -158,15 +132,18 @@ def main():
         avgColor=findBGR(image)                     # find the dominant color
         imgDict["name"]=str(index)
         imgDict["imgColors"]=avgColor
-        imgDict["npArray"]=np.array(image)
+        imgDict["npArray"]=image
         imgList.append(imgDict)                     # make a dict that gives the name, dominant color, and array of each img
+        index+=1
     #print(imgList)
     bigImg=cv2.imread(bigImg)
     # targetSplit=splitImage(bigImg,grid)
     # min_dist=float("inf")
-    print('before: ',imgList)
+    #print('before: ',imgList)
     imgList=removeBad(imgList)
-    print('new img list:',imgList)
+    #print('new img list:',imgList)
+    for img in imgList:
+        print(img["npArray"].shape)
     mosaic=replace(bigImg,grid,imgList)
     # for rect in targetImage:
     #     rectColor=findBGR(rect)
