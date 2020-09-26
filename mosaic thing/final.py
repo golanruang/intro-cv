@@ -7,12 +7,12 @@ from skimage import io
 import math
 # python final.py --imgFolder images --bigImg targetImage.jpeg --grid 10
 def findMatch(img,imgList):
-    minDist=-1
+    minDist=100000
     index=0
     minIndex=-1
+    color=findDominantColor(img)
     for image in imgList:
-        color=findDominantColor(img)
-        #print(color[0])
+        print("image color: ",image["imgColor"])
         db=(color[0]-image["imgColor"][0])*(color[0]-image["imgColor"][0])
         dg=(color[1]-image["imgColor"][1])*(color[1]-image["imgColor"][1])
         dr=(color[2]-image["imgColor"][2])*(color[2]-image["imgColor"][2])
@@ -21,7 +21,7 @@ def findMatch(img,imgList):
             minDist=dist
             minIndex=index
         index+=1
-
+    print("img chosen: ", imgList[minIndex]["imgName"])
     return minIndex
 
 def replace(bigImg,imgList):
@@ -106,7 +106,7 @@ def main():
         dict["imgName"]=imgName
         dict["imgColor"]=imgColor
         imgList.append(dict)
-    displayDominant(imgList[0])
+    #displayDominant(imgList[0])
 
     #print('imgList: ',imgList)
     replace(bigImg,imgList)
