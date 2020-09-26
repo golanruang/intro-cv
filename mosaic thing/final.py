@@ -17,21 +17,22 @@ def findMatch(img,imgList):
         dg=(color[1]-image["imgColor"][1])*(color[1]-image["imgColor"][1])
         dr=(color[2]-image["imgColor"][2])*(color[2]-image["imgColor"][2])
         dist=int(math.sqrt((db+dg+dr)))
-        if dist>minDist:
+        if dist<minDist:
             minDist=dist
             minIndex=index
         index+=1
 
     return minIndex
 
-def replace(bigImg,imgList,grid):
+def replace(bigImg,imgList):
     targetImage=cv2.imread(bigImg)
     width,height=targetImage.shape[0],targetImage.shape[1]
-    unitW=int(int(width)/50)
-    unitH=int(int(height)/50)
+    numPics=50
+    unitW=int(int(width)/numPics)
+    unitH=int(int(height)/numPics)
     imgs=[]
-    for h in range(unitH):
-        for w in range(unitW):
+    for h in range(numPics):
+        for w in range(numPics):
             try:
                 topLeft=[w*unitW,h*unitH]
                 bottomRight=[(w+1)*unitW,(h+1)*unitH]
@@ -47,9 +48,9 @@ def replace(bigImg,imgList,grid):
             except:
                 hi=0
     resizedMosaic=cv2.resize(targetImage,(1060,707),interpolation=cv2.INTER_AREA)
+    print('finished')
     cv2.imshow("mosaic",resizedMosaic)
-    cv2.waitKey()
-
+    cv2.waitKey(0)
 
 def readImages(dir):
     images = []
