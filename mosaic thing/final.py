@@ -5,6 +5,8 @@ import cv2
 import time
 from skimage import io
 import math
+from __future__ import print_function
+from matplotlib import pyplot as plt
 # python final.py --imgFolder images --bigImg targetImage.png
 def findMatch(img,imgList):
     minDist=100000
@@ -24,7 +26,42 @@ def findMatch(img,imgList):
     print("img chosen: ", imgList[minIndex]["imgName"])
     return minIndex
 
+def displayRectangles(img):
+    """
+    dRaWs rEcTaNgLeS
+    ch5.
+    """
+    image=cv2.imread(img)
+    width,height=image.shape[1],image.shape[0]
+    numPics=15
+    unitW=int(int(width)/numPics)
+    unitH=int(int(height)/numPics)
+    imgs=[]
+    for h in range(numPics):
+        for w in range(numPics):
+            topLeft=[w*unitW,h*unitH]
+            bottomRight=[(w+1)*unitW,(h+1)*unitH]
+            cv2.rectangle(image,(topLeft[0],topLeft[1]),(bottomRight[0],bottomRight[1]),(0,0,255),5)
+    resizedImg=cv2.resize(image,(1060,707),interpolation=cv2.INTER_AREA)
+    cv2.imshow("Bounding Rectangles",resizedImg)
+    cv2.waitKey()
+
+def blurImg(img):
+    """
+    blurs original image - ch8.
+    """
+    blurred = np.hstack([
+        cv2.GaussianBlur(image, (3, 3), 0),
+        cv2.GaussianBlur(image, (5, 5), 0),
+        cv2.GaussianBlur(image, (7, 7), 0)])
+
+    return blurred
+
+
 def replace(bigImg,imgList):
+    """
+    img cropping - ch6
+    """
     targetImage=cv2.imread(bigImg)
     width,height=targetImage.shape[1],targetImage.shape[0]
     numPics=50
@@ -38,7 +75,7 @@ def replace(bigImg,imgList):
                 bottomRight=[(w+1)*unitW,(h+1)*unitH]
                 #print("topLeft: ",topLeft)
                 #print("bottomRight: ",bottomRight)
-                cv2.rectangle(targetImage,(topLeft[0],topLeft[1]),(bottomRight[0],bottomRight[1]),(0,0,255),5)
+                #cv2.rectangle(targetImage,(topLeft[0],topLeft[1]),(bottomRight[0],bottomRight[1]),(0,0,255),5)
                 rect=targetImage[topLeft[1]:bottomRight[1],topLeft[0]:bottomRight[0]]
                 img_to_replace_with=imgList[findMatch(rect,imgList)]["imgName"]
                 finalImg=cv2.imread(img_to_replace_with)
@@ -82,7 +119,8 @@ def displayDominant(img):
     dom_img=np.zeros((h,w,3),np.uint8)
     dom_img[:] = img["imgColor"]
 
-    cv2.imshow("Dominant Color Example", np.hstack([image, dom_img]))
+    resizedImg=cv2.resize(np.hstack([image, dom_img]),(1060,707),interpolation=cv2.INTER_AREA)
+    cv2.imshow("Dominant Color Example of One Img", resizedImg)
     cv2.waitKey(0)
 
 def main():
@@ -105,8 +143,9 @@ def main():
         dict["imgName"]=imgName
         dict["imgColor"]=imgColor
         imgList.append(dict)
-    #displayDominant(imgList[0])
-
+    print('done processing folder imgs')
+    displayDominant(imgList[0])
+    displayRectangles(bigImg)
     #print('imgList: ',imgList)
     mosaic=replace(bigImg,imgList)
     cv2.imshow("mosaic",resizedMosaic)
