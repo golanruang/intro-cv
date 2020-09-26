@@ -4,6 +4,7 @@ import numpy as np
 import cv2
 import time
 from skimage import io
+import math
 # python final.py --imgFolder images --bigImg targetImage.jpeg --grid 10
 def findMatch(img,imgList):
     minDist=-1
@@ -15,7 +16,7 @@ def findMatch(img,imgList):
         db=(color[0]-image["imgColor"][0])*(color[0]-image["imgColor"][0])
         dg=(color[1]-image["imgColor"][1])*(color[1]-image["imgColor"][1])
         dr=(color[2]-image["imgColor"][2])*(color[2]-image["imgColor"][2])
-        dist=int(db+dg+dr)
+        dist=int(math.sqrt((db+dg+dr)))
         if dist>minDist:
             minDist=dist
             minIndex=index
