@@ -5,7 +5,7 @@ import cv2
 import time
 from skimage import io
 import math
-# python final.py --imgFolder images --bigImg targetImage.jpeg --grid 10
+# python final.py --imgFolder images --bigImg targetImage.png
 def findMatch(img,imgList):
     minDist=100000
     index=0
@@ -27,7 +27,7 @@ def findMatch(img,imgList):
 def replace(bigImg,imgList):
     targetImage=cv2.imread(bigImg)
     width,height=targetImage.shape[1],targetImage.shape[0]
-    numPics=15
+    numPics=50
     unitW=int(int(width)/numPics)
     unitH=int(int(height)/numPics)
     imgs=[]
@@ -48,9 +48,8 @@ def replace(bigImg,imgList):
             except:
                 hi=0
     resizedMosaic=cv2.resize(targetImage,(1060,707),interpolation=cv2.INTER_AREA)
-    print('finished')
-    cv2.imshow("mosaic",resizedMosaic)
-    cv2.waitKey(0)
+    return resizedMosaic
+    print('finished making mosaic')
 
 def readImages(dir):
     images = []
@@ -109,6 +108,8 @@ def main():
     #displayDominant(imgList[0])
 
     #print('imgList: ',imgList)
-    replace(bigImg,imgList)
+    mosaic=replace(bigImg,imgList)
+    cv2.imshow("mosaic",resizedMosaic)
+    cv2.waitKey(0)
 
 main()
