@@ -26,8 +26,8 @@ def findMatch(img,imgList):
 
 def replace(bigImg,imgList):
     targetImage=cv2.imread(bigImg)
-    width,height=targetImage.shape[0],targetImage.shape[1]
-    numPics=50
+    width,height=targetImage.shape[1],targetImage.shape[0]
+    numPics=15
     unitW=int(int(width)/numPics)
     unitH=int(int(height)/numPics)
     imgs=[]
