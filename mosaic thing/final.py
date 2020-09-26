@@ -12,7 +12,7 @@ def findMatch(img,imgList):
     minIndex=-1
     for image in imgList:
         color=findDominantColor(img)
-        print(color[0])
+        #print(color[0])
         db=(color[0]-image["imgColor"][0])*(color[0]-image["imgColor"][0])
         dg=(color[1]-image["imgColor"][1])*(color[1]-image["imgColor"][1])
         dr=(color[2]-image["imgColor"][2])*(color[2]-image["imgColor"][2])
@@ -27,8 +27,8 @@ def findMatch(img,imgList):
 def replace(bigImg,imgList,grid):
     targetImage=cv2.imread(bigImg)
     width,height=targetImage.shape[0],targetImage.shape[1]
-    unitW=int(int(width)/20)
-    unitH=int(int(height)/20)
+    unitW=int(int(width)/50)
+    unitH=int(int(height)/50)
     imgs=[]
     for h in range(unitH):
         for w in range(unitW):
@@ -45,7 +45,7 @@ def replace(bigImg,imgList,grid):
                 resized=cv2.resize(finalImg,(unitW,unitH),interpolation=cv2.INTER_AREA)
                 targetImage[topLeft[1]:bottomRight[1], topLeft[0]:bottomRight[0]]=resized
             except:
-                print(':(')
+                hi=0
     resizedMosaic=cv2.resize(targetImage,(1060,707),interpolation=cv2.INTER_AREA)
     cv2.imshow("mosaic",resizedMosaic)
     cv2.waitKey()
@@ -63,26 +63,37 @@ def findDominantColor(img):
     data = np.reshape(img, (-1,3))
     data = np.float32(data)
 
+    h=img.shape[0]
+    w=img.shape[1]
+
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
     flags = cv2.KMEANS_RANDOM_CENTERS
     compactness,labels,centers = cv2.kmeans(data,1,None,criteria,10,flags)
 
     #print('Dominant color is: bgr({})'.format(centers[0].astype(np.int32)))
+
     return centers[0].astype(np.int32)
+
+def displayDominant(img):
+    image=cv2.imread(img["imgName"])
+    h=image.shape[0]
+    w=image.shape[1]
+
+    dom_img=np.zeros((h,w,3),np.uint8)
+    dom_img[:] = img["imgColor"]
+
+    cv2.imshow("Dominant Color Example", np.hstack([image, dom_img]))
+    cv2.waitKey(0)
 
 def main():
     ap=argparse.ArgumentParser()                    # necessary inputs
     ap.add_argument("-i","--imgFolder",required=True,help="Path to the folder with a lot of images in it")
     ap.add_argument("-j","--bigImg",required=True,help="Path to image for big mosaic")
-    ap.add_argument("-k","--grid",required=True,help="Size of mosaic")
     args=vars(ap.parse_args())
 
     imgFolder=args["imgFolder"]
     bigImg=args["bigImg"]
-    yes=cv2.imread(bigImg)
-    h,w=yes.shape[0],yes.shape[1]
 
-    grid=args["grid"]
     folderImgs=readImages(imgFolder)                # return image names from folder to make mosaic
 
     imgList=[]
@@ -94,7 +105,9 @@ def main():
         dict["imgName"]=imgName
         dict["imgColor"]=imgColor
         imgList.append(dict)
+    displayDominant(imgList[0])
 
-    replace(bigImg,imgList,grid)
+    #print('imgList: ',imgList)
+    replace(bigImg,imgList)
 
 main()
