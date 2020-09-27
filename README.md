@@ -10,4 +10,7 @@ detectEdge() detects the edges of the mosaic - ch10.
 
 main() loads and displays photos - ch2. 
 
+To run mosaic.py in the current repository, use:
+python mosaic.py --imgFolder images --bigImg targetImage.png
+
 Finished 9/27
