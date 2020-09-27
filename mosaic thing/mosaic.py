@@ -7,14 +7,13 @@ import time
 from skimage import io
 import math
 from matplotlib import pyplot as plt
-# python final.py --imgFolder images --bigImg targetImage.png
+# python mosaic.py --imgFolder images --bigImg targetImage.png
 def findMatch(img,imgList):
-    minDist=100000
+    minDist=100000                                                          # min dist for image to be selected
     index=0
     minIndex=-1
-    color=findDominantColor(img)
-    for image in imgList:
-        print("image color: ",image["imgColor"])
+    color=findDominantColor(img)                                            # find color of img
+    for image in imgList:                                                   # distance formula to find how close the colors are
         db=(color[0]-image["imgColor"][0])*(color[0]-image["imgColor"][0])
         dg=(color[1]-image["imgColor"][1])*(color[1]-image["imgColor"][1])
         dr=(color[2]-image["imgColor"][2])*(color[2]-image["imgColor"][2])
@@ -23,7 +22,7 @@ def findMatch(img,imgList):
             minDist=dist
             minIndex=index
         index+=1
-    print("img chosen: ", imgList[minIndex]["imgName"])
+
     return minIndex
 
 def displayRectangles(img):
@@ -37,13 +36,13 @@ def displayRectangles(img):
     unitW=int(int(width)/numPics)
     unitH=int(int(height)/numPics)
     imgs=[]
-    for h in range(numPics):
-        for w in range(numPics):
+    for h in range(numPics):                                         # divide pic height by rectangle height
+        for w in range(numPics):                                     # divide pic width by rectangle width
             topLeft=[w*unitW,h*unitH]
             bottomRight=[(w+1)*unitW,(h+1)*unitH]
             cv2.rectangle(image,(topLeft[0],topLeft[1]),(bottomRight[0],bottomRight[1]),(0,0,255),5)
     resizedImg=cv2.resize(image,(1060,707),interpolation=cv2.INTER_AREA)
-    cv2.imshow("Step 2: Divide Image Up Into Rectangles",resizedImg)
+    cv2.imshow("Step 2: Divide Image Up Into Rectangles",resizedImg) # draw rectangle and resize
     cv2.waitKey()
 
 def blurImg(img):
@@ -71,12 +70,9 @@ def replace(bigImg,imgList):
     imgs=[]
     for h in range(numPics):
         for w in range(numPics):
-            try:
-                topLeft=[w*unitW,h*unitH]
+            try:                            # sometimes program breaks because there's like 1px at the end and it can't make a rectangle
+                topLeft=[w*unitW,h*unitH]   # coords of top left corner of rect
                 bottomRight=[(w+1)*unitW,(h+1)*unitH]
-                #print("topLeft: ",topLeft)
-                #print("bottomRight: ",bottomRight)
-                #cv2.rectangle(targetImage,(topLeft[0],topLeft[1]),(bottomRight[0],bottomRight[1]),(0,0,255),5)
                 rect=targetImage[topLeft[1]:bottomRight[1],topLeft[0]:bottomRight[0]]
                 img_to_replace_with=imgList[findMatch(rect,imgList)]["imgName"]
                 finalImg=cv2.imread(img_to_replace_with)
@@ -84,7 +80,7 @@ def replace(bigImg,imgList):
                 resized=cv2.resize(finalImg,(unitW,unitH),interpolation=cv2.INTER_AREA)
                 targetImage[topLeft[1]:bottomRight[1], topLeft[0]:bottomRight[0]]=resized
             except:
-                hi=0
+                broken=True
     resizedMosaic=cv2.resize(targetImage,(1060,707),interpolation=cv2.INTER_AREA)
     print('finished making mosaic')
     return resizedMosaic
@@ -104,7 +100,7 @@ def findDominantColor(img):
 
     h=img.shape[0]
     w=img.shape[1]
-
+    # uses k-means clustering to find the dominant color 
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
     flags = cv2.KMEANS_RANDOM_CENTERS
     compactness,labels,centers = cv2.kmeans(data,1,None,criteria,10,flags)
