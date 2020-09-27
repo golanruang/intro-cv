@@ -5,7 +5,7 @@ import cv2
 import time
 from skimage import io
 import math
-from __future__ import print_function
+#from __future__ import print_function
 from matplotlib import pyplot as plt
 # python final.py --imgFolder images --bigImg targetImage.png
 def findMatch(img,imgList):
@@ -26,21 +26,26 @@ def findMatch(img,imgList):
     print("img chosen: ", imgList[minIndex]["imgName"])
     return minIndex
 
-def displayRectangles(img):
+def displayRectangles(img,boxW,boxH):
     """
     dRaWs rEcTaNgLeS
     ch5.
     """
     image=cv2.imread(img)
     width,height=image.shape[1],image.shape[0]
-    numPics=15
-    unitW=int(int(width)/numPics)
-    unitH=int(int(height)/numPics)
+    print("width: ",width)
+    print("height: ",height)
+    print("boxH: ",boxH)
+    print("boxW: ",boxW)
+    unitW=int(width/boxW)
+    unitH=int(height/boxH)
+    print("unitH: ",unitH)
+    print("unitW: ",unitW)
     imgs=[]
-    for h in range(numPics):
-        for w in range(numPics):
-            topLeft=[w*unitW,h*unitH]
-            bottomRight=[(w+1)*unitW,(h+1)*unitH]
+    for h in range(unitH):
+        for w in range(unitW):
+            topLeft=[w*boxW,h*boxH]
+            bottomRight=[(w+1)*boxW,(h+1)*boxH]
             cv2.rectangle(image,(topLeft[0],topLeft[1]),(bottomRight[0],bottomRight[1]),(0,0,255),5)
     resizedImg=cv2.resize(image,(1060,707),interpolation=cv2.INTER_AREA)
     cv2.imshow("Bounding Rectangles",resizedImg)
@@ -58,18 +63,17 @@ def blurImg(img):
     return blurred
 
 
-def replace(bigImg,imgList):
+def replace(bigImg,imgList,boxH,boxW):
     """
     img cropping - ch6
     """
     targetImage=cv2.imread(bigImg)
     width,height=targetImage.shape[1],targetImage.shape[0]
-    numPics=50
-    unitW=int(int(width)/numPics)
-    unitH=int(int(height)/numPics)
+    unitW=int(int(width)/boxH)
+    unitH=int(int(height)/boxW)
     imgs=[]
-    for h in range(numPics):
-        for w in range(numPics):
+    for h in range(boxH):
+        for w in range(boxW):
             try:
                 topLeft=[w*unitW,h*unitH]
                 bottomRight=[(w+1)*unitW,(h+1)*unitH]
@@ -111,6 +115,35 @@ def findDominantColor(img):
 
     return centers[0].astype(np.int32)
 
+def findRectDim(image):
+    """
+    Find how many rectangles should be for every image
+    """
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    blurred = cv2.bilateralFilter(gray, 9, 9, 75)
+    cv2.imshow("Image", image)
+
+    edged = cv2.Canny(blurred, 30, 150)
+    cv2.imshow("Edges", edged)
+
+    (cnts, _) = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contoured = image.copy()
+    cv2.drawContours(contoured, cnts, -1, (0, 255, 0), 2)
+    numBoxes=0
+    totalWidths=0
+    totalHeights=0
+    for (i, c) in enumerate(cnts):
+        (x, y, w, h) = cv2.boundingRect(c)
+        totalWidths+=w
+        totalHeights+=h
+        numBoxes+=1
+    height=(totalHeights/numBoxes) * 13/10
+    width=(totalWidths/numBoxes) * 13/10
+    #print("height",height)
+    #print("width",width)
+    #return height,width
+    return 115, 115
+
 def displayDominant(img):
     image=cv2.imread(img["imgName"])
     h=image.shape[0]
@@ -134,6 +167,10 @@ def main():
 
     folderImgs=readImages(imgFolder)                # return image names from folder to make mosaic
 
+    boxH, boxW=findRectDim(cv2.imread(bigImg))
+
+    boxH=int(boxH)
+    boxW=int(boxW)
     imgList=[]
     for img in folderImgs:
         dict={}
@@ -145,9 +182,9 @@ def main():
         imgList.append(dict)
     print('done processing folder imgs')
     displayDominant(imgList[0])
-    displayRectangles(bigImg)
+    displayRectangles(bigImg,boxW,boxH)
     #print('imgList: ',imgList)
-    mosaic=replace(bigImg,imgList)
+    mosaic=replace(bigImg,imgList,boxH,boxW)
     cv2.imshow("mosaic",resizedMosaic)
     cv2.waitKey(0)
 
